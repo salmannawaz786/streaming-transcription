@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Streaming Transcription</title>
+<style>
+  :root {
+    --bg: #0b0b0c;
+    --panel: #121214;
+    --line: #232326;
+    --fg: #ececee;
+    --dim: #7c7c85;
+    --accent: #c8a45c;
+    --ok: #5fb37a;
+    --bad: #d4614e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 15px/1.6 ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+    display: flex; flex-direction: column; align-items: center;
+    min-height: 100vh; padding: 48px 20px;
+  }
+  header { width: min(760px, 100%); margin-bottom: 28px; }
+  h1 { font-size: 20px; font-weight: 600; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .sub { color: var(--dim); font-size: 13px; margin: 0; }
+  .bar {
+    width: min(760px, 100%); display: flex; align-items: center; gap: 14px;
+    margin-bottom: 18px;
+  }
+  button {
+    background: var(--accent); color: #14140f; border: 0; border-radius: 6px;
+    padding: 9px 18px; font: inherit; font-weight: 600; cursor: pointer;
+  }
+  button.on { background: var(--bad); color: #fff; }
+  .status { font-size: 13px; color: var(--dim); }
+  .status.live { color: var(--ok); }
+  .status.busy { color: var(--accent); }
+  .status.warn, .status.bad { color: var(--bad); }
+  .toggle {
+    display: flex; align-items: center; gap: 6px; font-size: 12px;
+    color: var(--dim); cursor: pointer; user-select: none;
+  }
+  .toggle input { accent-color: var(--accent); cursor: pointer; }
+  /* `display: flex` above outranks the browser's [hidden] rule, so the toggle
+     stayed visible while marked hidden. Restate it at higher specificity. */
+  .toggle[hidden] { display: none; }
+  .gpu-state { font-size: 11px; }
+  .gpu-state.off { display: none; }
+  .gpu-state.waiting { color: var(--accent); }
+  .gpu-state.active { color: var(--ok); }
+  .gpu-state.fallback { color: var(--bad); }
+  #meta { margin-left: auto; font-size: 12px; color: var(--dim); font-variant: tabular-nums; }
+  #transcript {
+    width: min(760px, 100%); flex: 1; min-height: 320px; max-height: 55vh;
+    overflow-y: auto; background: var(--panel); border: 1px solid var(--line);
+    border-radius: 10px; padding: 20px 22px;
+  }
+  .line { margin: 0 0 10px; }
+  .line.partial { color: var(--dim); font-style: italic; }
+  .src {
+    margin-left: 8px; font-size: 10px; letter-spacing: .04em;
+    text-transform: uppercase; padding: 1px 5px; border-radius: 3px;
+    vertical-align: middle; opacity: .55;
+  }
+  .src.whisper { background: #23331f; color: var(--ok); }
+  .src.vosk { background: #2e2a1c; color: var(--accent); }
+  #transcript:empty::after {
+    content: 'Press start and speak. Grey italic text is a partial hypothesis and will be revised.';
+    color: var(--dim); font-size: 13px;
+  }
+  .stats {
+    width: min(760px, 100%); display: flex; gap: 28px; margin-top: 16px;
+    font-size: 12px; color: var(--dim);
+  }
+  .stats .v { color: var(--fg); font-variant: tabular-nums; }
+  .stats .v.ok { color: var(--ok); }
+  .stats .v.bad { color: var(--bad); }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Streaming transcription</h1>
+    <p class="sub">Vosk streams words live; Whisper commits the accurate line. Speaker labels land in Phase 2.</p>
+  </header>
+
+  <div class="bar">
+    <button id="mic">Start listening</button>
+    <span id="status" class="status">idle</span>
+    <label id="gpu-wrap" class="toggle" hidden>
+      <input type="checkbox" id="gpu" /> GPU tier
+    </label>
+    <span id="gpu-state" class="gpu-state off"></span>
+    <span id="meta"></span>
+  </div>
+
+  <div id="transcript"></div>
+
+  <div class="stats">
+    <span>final RTF <span id="rtf" class="v">—</span></span>
+    <span>final decode <span id="decode" class="v">—</span></span>
+    <span>first word <span id="onset" class="v">—</span></span>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
